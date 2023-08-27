@@ -23,7 +23,8 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         super(MainWindow, self).__init__(*args, **kwargs)
         self.setupUi(self)
         self.setWindowIcon(QIcon('icon.ico'))
-        self.currentCity = weather.getCities("New York")[0]
+        newyork = weather.getCities("New York")[0]
+        self.latlong = newyork.latlong
         self.updateUi()
         self.showHourlyWeather()
         self.showDailyWeather()
@@ -31,10 +32,10 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         updateUiTimer.timeout.connect(self.updateUi)
         updateUiTimer.start(300000) #update ui every five minutes
         self.searchbar.returnPressed.connect(self.changeCity)
+        self.cityNameSubmitButton.clicked.connect(self.changeCity)
+        self.latLongSubmitButton.clicked.connect(self.newLatLong)
     def updateUi(self):
-        latlong = self.currentCity.latlong
-        currentWeather = weather.getCurrentWeather(latlong)
-        self.cityLabel.setText(self.currentCity.name)
+        currentWeather = weather.getCurrentWeather(self.latlong)
         self.currentTemp.setText(str(currentWeather.temperature) + " °C")
         self.currentWeather.setText(currentWeather.weatherDescription())
         weatherPixmap = QPixmap(currentWeather.weatherImage())
@@ -42,12 +43,12 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.dewPointLabel.setText("Dew Point: " + str(currentWeather.dewPoint) + "°")
         self.precipitationLabel.setText("Precipitation: " + str(currentWeather.precipitation) + " mm")
         self.humidityLabel.setText("Humidity: " + str(currentWeather.humidity) + "%")
-        sunrise, sunset = weather.getSunriseSunset(latlong)
+        sunrise, sunset = weather.getSunriseSunset(self.latlong)
         self.sunriseLabel.setText("Sunrise: " + sunrise.strftime('%H:%M'))
         self.sunsetLabel.setText("Sunset: " + sunset.strftime('%H:%M'))
     def showDailyWeather(self):
         clearLayout(self.dailyWeatherLayout)
-        weatherData = weather.getDailyData(self.currentCity.latlong)
+        weatherData = weather.getDailyData(self.latlong)
         for i in range(7):
             dayWeather = weatherData[i]
             dayOfWeek = dayWeather.date.strftime('%a')
@@ -55,20 +56,37 @@ class MainWindow(Ui_MainWindow, QMainWindow):
             self.dailyWeatherLayout.addWidget(newWidget)
     def showHourlyWeather(self):
         clearLayout(self.hourlyWeatherLayout)
-        weatherData = weather.getHourlyData(self.currentCity.latlong)
+        weatherData = weather.getHourlyData(self.latlong)
         for i in range(0, 24, 3):
             hourWeather = weatherData[i]
             newWidget = HourWeatherWidget(hourWeather.time.hour, hourWeather.temperature, hourWeather.weatherImage())
             self.hourlyWeatherLayout.addWidget(newWidget)
     def changeCity(self):
         try:
-            self.currentCity = weather.getCities(self.searchbar.text())[0]
+            newCity = weather.getCities(self.searchbar.text())[0]
         except KeyError:
             self.cityLabel.setText("City does not exist")
         else:
-            self.updateUi()
-            self.showHourlyWeather()
-            self.showDailyWeather()
+            self.newWeatherLocation(newCity.latlong, newCity.name)
+    def newLatLong(self):
+        try:
+            latitude = float(self.latitudeInput.text())
+            longitude = float(self.longitudeInput.text())
+        except ValueError:
+            self.cityLabel.setText("Invalid Input")
+            return
+        # check if latlong is valid
+        if not (-90 <= latitude <= 90) or not (-180 <= longitude <= 180):
+            self.cityLabel.setText("Invalid Input")
+            return
+        latlongStr = f"{str(latitude)}, {str(longitude)}"
+        self.newWeatherLocation((latitude, longitude), latlongStr)
+    def newWeatherLocation(self, latlong: tuple[float], locationName: str):
+        self.latlong = latlong
+        self.updateUi()
+        self.showHourlyWeather()
+        self.showDailyWeather()
+        self.cityLabel.setText(locationName)
 
 window = MainWindow()
 window.show()
