@@ -63,7 +63,7 @@
    </palette>
   </property>
   <property name="windowTitle">
-   <string>Weather</string>
+   <string>OpenWeather</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="sizePolicy">
@@ -173,7 +173,7 @@
        </font>
       </property>
       <property name="text">
-       <string>Calgary</string>
+       <string>New York</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>

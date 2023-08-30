@@ -25,6 +25,7 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.setWindowIcon(QIcon('icon.ico'))
         newyork = weather.getCities("New York")[0]
         self.latlong = newyork.latlong
+        self.cityLabel.setText("New York")
         self.updateUi()
         self.showHourlyWeather()
         self.showDailyWeather()
@@ -34,6 +35,8 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.searchbar.returnPressed.connect(self.changeCity)
         self.cityNameSubmitButton.clicked.connect(self.changeCity)
         self.latLongSubmitButton.clicked.connect(self.newLatLong)
+        self.latitudeInput.returnPressed.connect(self.newLatLong)
+        self.longitudeInput.returnPressed.connect(self.newLatLong)
     def updateUi(self):
         currentWeather = weather.getCurrentWeather(self.latlong)
         self.currentTemp.setText(str(currentWeather.temperature) + " °C")
@@ -88,7 +91,8 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.showDailyWeather()
         self.cityLabel.setText(locationName)
 
-window = MainWindow()
-window.show()
+if __name__ == '__main__':
+    window = MainWindow()
+    window.show()
 
-app.exec()
+    app.exec()

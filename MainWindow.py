@@ -198,7 +198,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "Weather"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "OpenWeather"))
         self.searchbar.setPlaceholderText(_translate("MainWindow", "Enter a city..."))
         self.cityNameSubmitButton.setText(_translate("MainWindow", "Submit"))
         self.latitudeLabel.setText(_translate("MainWindow", "Lat:"))
@@ -206,7 +206,7 @@ class Ui_MainWindow(object):
         self.longitudeLabel.setText(_translate("MainWindow", "Long:"))
         self.longitudeInput.setPlaceholderText(_translate("MainWindow", "Longitude..."))
         self.latLongSubmitButton.setText(_translate("MainWindow", "Submit"))
-        self.cityLabel.setText(_translate("MainWindow", "Calgary"))
+        self.cityLabel.setText(_translate("MainWindow", "New York"))
         self.currentWeatherHeader.setText(_translate("MainWindow", "Current Weather:"))
         self.currentTemp.setText(_translate("MainWindow", "10 °C"))
         self.currentWeather.setText(_translate("MainWindow", "Severe Thunderstorms"))
