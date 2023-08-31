@@ -52,16 +52,16 @@ class DayWeather:
     def weatherDescription(self):
         return weathercodes[str(self.weathercode)]['day']['description']
 
-class City:
-    def __init__(self, id: int, name: str, countryCode: str, countryName: str, latlong: tuple[float]):
-        self.id = id
-        self.name = name
-        self.countryCode = countryCode
-        self.countryName = countryName
-        self.latlong = latlong
-
 def getCurrentWeather(latlong: tuple[float]) -> Weather:
-    data = requests.get(f"http://api.open-meteo.com/v1/forecast?latitude={latlong[0]}&longitude={latlong[1]}&hourly=relativehumidity_2m,dewpoint_2m,precipitation&current_weather=true&timezone=auto&forecast_days=1").json()
+    params = {
+        'latitude': latlong[0],
+        'longitude': latlong[1],
+        'hourly': ['relativehumidity_2m', 'dewpoint_2m', 'precipitation'],
+        'current_weather': True,
+        'timezone': 'auto',
+        'forecast_days': 1
+    }
+    data = requests.get(f"http://api.open-meteo.com/v1/forecast", params).json()
     weather = Weather()
     currentData = data['current_weather']
     weather.isDay = bool(currentData['is_day'])
@@ -79,14 +79,28 @@ def getCurrentWeather(latlong: tuple[float]) -> Weather:
 
 # returns tuple of (sunrise, sunset)
 def getSunriseSunset(latlong: tuple[float]) -> tuple[datetime.datetime]:
-    sunriseSunsetData = requests.get(f"http://api.open-meteo.com/v1/forecast?latitude={latlong[0]}&longitude={latlong[1]}&daily=sunrise,sunset&timezone=auto&forecast_days=1").json()
+    params = {
+        'latitude': latlong[0],
+        'longitude': latlong[1],
+        'daily': ['sunrise', 'sunset'],
+        'timezone': 'auto',
+        'forecast_days': 1
+    }
+    sunriseSunsetData = requests.get("http://api.open-meteo.com/v1/forecast", params).json()
     sunrise = parser.parse(sunriseSunsetData['daily']['sunrise'][0])
     sunset = parser.parse(sunriseSunsetData['daily']['sunset'][0])
     return sunrise, sunset
 
 # get hourly weather info for the next 24 hours
 def getHourlyData(latlong: tuple[float]) -> list[Weather]:
-    data = requests.get(f"http://api.open-meteo.com/v1/forecast?latitude={latlong[0]}&longitude={latlong[1]}&hourly=temperature_2m,weathercode,windspeed_10m,winddirection_10m,precipitation&timezone=auto&forecast_days=2").json()
+    params = {
+        'latitude': latlong[0],
+        'longitude': latlong[1],
+        'hourly': ['temperature_2m', 'weathercode', 'windspeed_10m', 'winddirection_10m', 'precipitation'],
+        'timezone': 'auto',
+        'forecast_days': 2
+    }
+    data = requests.get("http://api.open-meteo.com/v1/forecast", params).json()
     currentHour = datetime.datetime.now(pytz.timezone(data['timezone'])).hour #the current hour in the place's timezone
     weathers = []
     sunrise, sunset = getSunriseSunset(latlong)
@@ -107,7 +121,13 @@ def getHourlyData(latlong: tuple[float]) -> list[Weather]:
 
 # get daily data for the next week
 def getDailyData(latlong: tuple[float]) -> list[DayWeather]:
-    data = requests.get(f"http://api.open-meteo.com/v1/forecast?latitude={latlong[0]}&longitude={latlong[1]}&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=auto").json()['daily']
+    params = {
+        'latitude': latlong[0],
+        'longitude': latlong[1],
+        'daily': ['weathercode', 'temperature_2m_max', 'temperature_2m_min'],
+        'timezone': 'auto'
+    }
+    data = requests.get("http://api.open-meteo.com/v1/forecast", params).json()['daily']
     weathers = []
     for i in range(7):
         date = parser.parse(data['time'][i]).date()
@@ -117,20 +137,3 @@ def getDailyData(latlong: tuple[float]) -> list[DayWeather]:
         weather = DayWeather(date, max_temperature, min_temperature, weathercode)
         weathers.append(weather)
     return weathers
-
-# Get current US Air Quality Index value
-# not using this because the data is extremely inaccurate
-'''def getCurrentAQI(latlong: tuple[float]) -> int:
-    today = datetime.datetime.utcnow().date().strftime('%Y-%m-%d')
-    data = requests.get(f"http://air-quality-api.open-meteo.com/v1/air-quality?latitude={latlong[0]}&longitude={latlong[1]}&hourly=us_aqi&start_date={today}&end_date={today}").json()
-    hourNumber = datetime.datetime.utcnow().hour
-    aqi = data['hourly']['us_aqi'][hourNumber]
-    return aqi'''
-
-# get cities from name
-def getCities(name: str) -> list[City]:
-    data = requests.get(f"http://geocoding-api.open-meteo.com/v1/search?name={name}&count=10&language=en&format=json").json()["results"]
-    cities = []
-    for city in data:
-        cities.append(City(city['id'], city['name'], city['country_code'], city['country'], (city['latitude'], city['longitude'])))
-    return cities

@@ -2,6 +2,7 @@ import weather
 from MainWindow import Ui_MainWindow
 from DayWeatherWidget import DayWeatherWidget
 from HourWeatherWidget import HourWeatherWidget
+from geography import queryPlace
 
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from PyQt5.QtGui import QPixmap, QIcon
@@ -23,17 +24,13 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         super(MainWindow, self).__init__(*args, **kwargs)
         self.setupUi(self)
         self.setWindowIcon(QIcon('icon.ico'))
-        newyork = weather.getCities("New York")[0]
-        self.latlong = newyork.latlong
-        self.cityLabel.setText("New York")
-        self.updateUi()
-        self.showHourlyWeather()
-        self.showDailyWeather()
+        # set the current location to new york
+        self.newWeatherLocation((40.7127281, -74.0060152), "New York", "New York, United States")
         updateUiTimer = QTimer()
         updateUiTimer.timeout.connect(self.updateUi)
         updateUiTimer.start(300000) #update ui every five minutes
         self.searchbar.returnPressed.connect(self.changeCity)
-        self.cityNameSubmitButton.clicked.connect(self.changeCity)
+        self.nameSubmitButton.clicked.connect(self.changeCity)
         self.latLongSubmitButton.clicked.connect(self.newLatLong)
         self.latitudeInput.returnPressed.connect(self.newLatLong)
         self.longitudeInput.returnPressed.connect(self.newLatLong)
@@ -66,30 +63,31 @@ class MainWindow(Ui_MainWindow, QMainWindow):
             self.hourlyWeatherLayout.addWidget(newWidget)
     def changeCity(self):
         try:
-            newCity = weather.getCities(self.searchbar.text())[0]
-        except KeyError:
-            self.cityLabel.setText("City does not exist")
+            newCity = queryPlace(self.searchbar.text())
+        except IndexError:
+            self.placeNameLabel.setText("Place not found")
         else:
-            self.newWeatherLocation(newCity.latlong, newCity.name)
+            self.newWeatherLocation(newCity.latlong, newCity.name, newCity.fullName)
     def newLatLong(self):
         try:
             latitude = float(self.latitudeInput.text())
             longitude = float(self.longitudeInput.text())
         except ValueError:
-            self.cityLabel.setText("Invalid Input")
+            self.placeNameLabel.setText("Invalid Input")
             return
         # check if latlong is valid
         if not (-90 <= latitude <= 90) or not (-180 <= longitude <= 180):
-            self.cityLabel.setText("Invalid Input")
+            self.placeNameLabel.setText("Invalid Input")
             return
         latlongStr = f"{str(latitude)}, {str(longitude)}"
         self.newWeatherLocation((latitude, longitude), latlongStr)
-    def newWeatherLocation(self, latlong: tuple[float], locationName: str):
+    def newWeatherLocation(self, latlong: tuple[float], locationName: str, fullName: str):
         self.latlong = latlong
         self.updateUi()
         self.showHourlyWeather()
         self.showDailyWeather()
-        self.cityLabel.setText(locationName)
+        self.placeNameLabel.setText(locationName)
+        self.fullNameLabel.setText(fullName)
 
 if __name__ == '__main__':
     window = MainWindow()
