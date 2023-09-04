@@ -12,6 +12,15 @@ import os
 basedir = os.path.dirname(__file__)
 app = QApplication([])
 
+# this piece of code ensures that taskbar icon will show
+# only on windows
+try:
+    from ctypes import windll
+    myappid = 'openweather'
+    windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+except ImportError:
+    pass
+
 #https://stackoverflow.com/a/25330164
 def clearLayout(layout):
     for i in reversed(range(layout.count())): 
@@ -23,7 +32,7 @@ class MainWindow(Ui_MainWindow, QMainWindow):
     def __init__(self, *args, obj=None, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
         self.setupUi(self)
-        self.setWindowIcon(QIcon('icon.ico'))
+        self.setWindowIcon(QIcon(os.path.join(basedir, 'icon.ico')))
         # set the current location to new york
         self.newWeatherLocation((40.7127281, -74.0060152), "New York", "New York, United States")
         updateUiTimer = QTimer()

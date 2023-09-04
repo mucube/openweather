@@ -1,15 +1,12 @@
 import requests
-import json
 from dateutil import parser
 import datetime
 import pytz
 import os
 
-basedir = os.path.dirname(__file__)
+from weathercodes import weathercodes
 
-# weather codes data from https://gist.github.com/stellasphere/9490c195ed2b53c707087c8c2db4ec0c
-with open("weathercodes.json", "r") as f:
-    weathercodes = json.loads(f.read())
+basedir = os.path.dirname(__file__)
 
 # convert celsius to fahrenheit
 def fahrenheit(celsius):
