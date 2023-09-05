@@ -71,6 +71,7 @@ class MainWindow(Ui_MainWindow, QMainWindow):
             newWidget = HourWeatherWidget(hourWeather.time.hour, hourWeather.temperature, hourWeather.weatherImage())
             self.hourlyWeatherLayout.addWidget(newWidget)
     def changeCity(self):
+        self.fullNameLabel.show()
         try:
             newCity = queryPlace(self.searchbar.text())
         except IndexError:
@@ -89,7 +90,8 @@ class MainWindow(Ui_MainWindow, QMainWindow):
             self.placeNameLabel.setText("Invalid Input")
             return
         latlongStr = f"{str(latitude)}, {str(longitude)}"
-        self.newWeatherLocation((latitude, longitude), latlongStr)
+        self.fullNameLabel.hide()
+        self.newWeatherLocation((latitude, longitude), latlongStr, "")
     def newWeatherLocation(self, latlong: tuple[float], locationName: str, fullName: str):
         self.latlong = latlong
         self.updateUi()
